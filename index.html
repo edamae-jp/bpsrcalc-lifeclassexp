@@ -446,31 +446,31 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.2);
         }
 
-        /* --- 署名エリア (Discordアイコン対応) --- */
+        /* --- 署名エリア (微調整済み) --- */
         .footer-signature {
             position: fixed;
             bottom: 10px;
             right: 15px;
             font-size: 0.85rem;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: #2A5669; /* 指定色 */
+            color: #2A5669; 
             font-weight: bold;
             opacity: 0.9;
             pointer-events: none;
             z-index: 50;
             letter-spacing: 0.03em;
             
-            /* アイコンとテキストを横並びに */
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
-        /* Discord SVGアイコンの設定 */
+        /* Discord SVGアイコンの設定 (1px下へ微調整) */
         .discord-icon {
             width: 16px;
             height: 16px;
-            fill: currentColor; /* テキスト色(#2A5669)を継承 */
+            fill: currentColor;
+            transform: translateY(1px); /* ここで微調整 */
         }
 
         .modal-overlay {
