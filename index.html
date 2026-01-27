@@ -282,6 +282,12 @@
                 -webkit-appearance: auto; 
                 margin: 0;
             }
+            
+            /* --- 署名アイコンのPC専用位置調整 --- */
+            /* PCではフォントの描画位置が異なるため、アイコンを2px下げる */
+            .discord-icon {
+                transform: translateY(2px);
+            }
         }
 
         .result-area {
@@ -446,7 +452,7 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.2);
         }
 
-        /* --- 署名エリア (微調整済み) --- */
+        /* --- 署名エリア --- */
         .footer-signature {
             position: fixed;
             bottom: 10px;
@@ -465,12 +471,11 @@
             gap: 5px;
         }
 
-        /* Discord SVGアイコンの設定 (1px下へ微調整) */
+        /* Discord SVGアイコンの設定 (デフォルト/スマホは調整なし) */
         .discord-icon {
             width: 16px;
             height: 16px;
             fill: currentColor;
-            transform: translateY(1px); /* ここで微調整 */
         }
 
         .modal-overlay {
