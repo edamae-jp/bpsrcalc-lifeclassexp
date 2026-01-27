@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPSR EXP Calculator</title>
+    <style>
+        /* --- デフォルト（ダークモード） --- */
+        :root {
+            --bg-color: #1a1a1d;
+            --card-bg: #2d2d30;
+            --input-bg: #1a1a1d;
+            
+            --dark-accent: #1C1361;
+            --main-accent: #5d9bc0;
+            --hover-color: #2A5669;
+            
+            --highlight-text: #5d9bc0; 
+            
+            --text-color: #e0e0e0;
+            --sub-text-color: #888;
+            --border-color: #444;
+            --error-color: #ff6b6b;
+            --success-color: #56c596; 
+            --th-bg: #222;
+        }
+
+        /* --- ライトモード --- */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f0f2f5;
+                --card-bg: #ffffff;
+                --input-bg: #f7f9fc;
+                
+                --dark-accent: #1C1361; 
+                --main-accent: #5d9bc0;
+                --hover-color: #2A5669;
+                
+                --highlight-text: #1C1361; 
+                
+                --text-color: #333333;
+                --sub-text-color: #666666;
+                --border-color: #dce0e5;
+                --error-color: #d32f2f;
+                --success-color: #2a8a68; 
+                --th-bg: #f0f2f5;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: var(--highlight-text);
+            line-height: 1.4;
+            letter-spacing: 0.05em;
+            transition: color 0.3s;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* --- PCレイアウト (768px以上) --- */
+        @media (min-width: 768px) {
+            .layout-wrapper {
+                display: grid;
+                grid-template-columns: 350px 1fr;
+                gap: 24px;
+                align-items: stretch;
+            }
+            
+            .card {
+                min-height: 700px; 
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s, border-color 0.3s;
+            height: 100%; 
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+
+        .en-label {
+            font-weight: normal;
+            font-size: 0.85rem;
+            color: var(--sub-text-color);
+            margin-left: 5px;
+        }
+
+        /* --- 数値入力エリア --- */
+        .number-control {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--input-bg);
+            overflow: hidden;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+
+        .number-control:focus-within {
+            border-color: var(--highlight-text);
+        }
+        
+        .number-control.error {
+            border-color: var(--error-color);
+            background-color: rgba(255, 107, 107, 0.1);
+        }
+
+        /* --- スクロールヒント (SVGアイコン) --- */
+        .scroll-hint {
+            display: none; /* デフォルト非表示 */
+            position: absolute;
+            right: 40px; 
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            opacity: 0;
+            
+            /* SVGの設定 */
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: var(--main-accent); /* テーマカラーを使用 */
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* 中のホイール部分のアニメーション */
+        .scroll-hint .wheel {
+            animation: scrollWheel 1.5s infinite;
+        }
+
+        @keyframes scrollWheel {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(4px); opacity: 0; }
+        }
+
+        /* PCスタイル: ホバー時に表示 */
+        @media (hover: hover) and (pointer: fine) {
+            @keyframes iconFade {
+                0% { opacity: 0; transform: translate(0, -50%); }
+                10% { opacity: 1; transform: translate(-5px, -50%); }
+                80% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+
+            .number-control:hover .scroll-hint {
+                display: block;
+                animation: iconFade 2.0s forwards; /* 少し長めに表示 */
+            }
+        }
+
+        /* スマホ用ボタン */
+        .spin-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--highlight-text);
+            font-size: 1.5rem;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s, color 0.2s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .spin-btn:hover {
+            background-color: rgba(128, 128, 128, 0.1);
+        }
+        
+        .spin-btn:active {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        input[type="number"] {
+            flex-grow: 1;
+            width: 100%;
+            padding: 12px 5px;
+            border: none;
+            background-color: transparent;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            text-align: center;
+            box-sizing: border-box;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+        }
+
+        /* --- PCレイアウト上書き (768px以上) --- */
+        @media (min-width: 768px) {
+            .spin-btn {
+                display: none;
+            }
+
+            .number-control {
+                border: none;
+                background-color: transparent;
+                display: block;
+            }
+
+            input[type="number"] {
+                text-align: left;
+                padding: 12px;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                background-color: var(--input-bg);
+            }
+
+            .number-control.error {
+                background-color: transparent;
+            }
+            .number-control.error input {
+                border-color: var(--error-color);
+                background-color: rgba(255, 107, 107, 0.1);
+            }
+
+            input[type="number"]:focus {
+                border-color: var(--highlight-text);
+                background-color: var(--card-bg); 
+            }
+
+            input[type="number"]::-webkit-outer-spin-button,
+            input[type="number"]::-webkit-inner-spin-button {
+                -webkit-appearance: auto; 
+                margin: 0;
+            }
+        }
+
+        .result-area {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 160px;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--sub-text-color);
+            margin-bottom: 8px;
+        }
+
+        .formula-display {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.95rem;
+            color: var(--sub-text-color);
+            margin-bottom: 5px;
+            height: 1.5em; 
+            line-height: 1.5em;
+            letter-spacing: 0.02em;
+            overflow: hidden;
+        }
+
+        .result-container {
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-value {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--highlight-text); 
+            line-height: 1;
+            position: absolute;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        
+        @media (prefers-color-scheme: light) {
+            .result-value {
+                color: var(--dark-accent);
+            }
+        }
+
+        .unit {
+            font-size: 1.2rem;
+            color: var(--sub-text-color);
+            margin-left: 5px;
+        }
+
+        .error-msg {
+            color: var(--error-color);
+            font-size: 0.95rem;
+            font-weight: bold;
+            line-height: 1.4;
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .has-error .result-value { opacity: 0; }
+        .has-error .error-msg { opacity: 1; }
+
+        .delivery-section {
+            background-color: rgba(128, 128, 128, 0.05);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .delivery-section label {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .action-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .action-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        .action-item:last-child {
+            border-bottom: none;
+        }
+
+        .action-name {
+            color: var(--text-color);
+            opacity: 0.9;
+        }
+
+        .action-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .action-count {
+            font-weight: bold;
+            color: var(--success-color);
+            font-size: 1.1rem;
+        }
+
+        .action-count span {
+            font-size: 0.8rem;
+            color: var(--sub-text-color);
+            font-weight: normal;
+            margin-left: 3px;
+        }
+
+        .action-focus {
+            font-size: 0.8rem;
+            color: var(--sub-text-color);
+            opacity: 0.8;
+            margin-top: 2px;
+            font-family: inherit;
+            letter-spacing: 0.02em;
+        }
+
+        button.toggle-btn {
+            background-color: var(--dark-accent);
+            border: 1px solid var(--dark-accent);
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: auto; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        button.toggle-btn:hover {
+            background-color: var(--hover-color);
+            border-color: var(--hover-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .footer-signature {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.85rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #2A5669; 
+            font-weight: bold;
+            opacity: 0.9;
+            pointer-events: none;
+            z-index: 50;
+            letter-spacing: 0.03em;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.is-open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--sub-text-color);
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 0.5;
+            transition: color 0.2s;
+        }
+        
+        .close-btn:hover {
+            color: var(--text-color);
+        }
+
+        .modal-body {
+            padding: 0;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            text-align: center;
+            background-color: var(--th-bg);
+            color: var(--sub-text-color);
+            font-weight: normal;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        
+        th span {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--sub-text-color);
+            margin-top: 4px;
+        }
+        
+        td:first-child {
+            text-align: center;
+            color: var(--highlight-text); 
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: rgba(128, 128, 128, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>BPSR EXP Calculator</h1>
+
+    <div class="layout-wrapper">
+        <div class="card full-height">
+            
+            <div class="input-group">
+                <label>現在のレベル <span class="en-label">/ Current Level</span></label>
+                <div class="number-control" id="ctrl-currentLv">
+                    <button class="spin-btn minus" onclick="stepValue('currentLv', -1)">-</button>
+                    <input type="number" id="currentLv" value="1" min="1" max="50">
+                    <button class="spin-btn plus" onclick="stepValue('currentLv', 1)">+</button>
+                    <svg class="scroll-hint" viewBox="0 0 24 24">
+                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
+                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>現レベルでの獲得EXP <span class="en-label">/ EXP Gained</span></label>
+                <div class="number-control" id="ctrl-currentExp">
+                    <button class="spin-btn minus" onclick="stepValue('currentExp', -10)">-</button>
+                    <input type="number" id="currentExp" value="0" min="0" step="10">
+                    <button class="spin-btn plus" onclick="stepValue('currentExp', 10)">+</button>
+                    <svg class="scroll-hint" viewBox="0 0 24 24">
+                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
+                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>目標レベル <span class="en-label">/ Target Level</span></label>
+                <div class="number-control" id="ctrl-targetLv">
+                    <button class="spin-btn minus" onclick="stepValue('targetLv', -1)">-</button>
+                    <input type="number" id="targetLv" value="50" min="2" max="50">
+                    <button class="spin-btn plus" onclick="stepValue('targetLv', 1)">+</button>
+                    <svg class="scroll-hint" viewBox="0 0 24 24">
+                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
+                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <button class="toggle-btn" id="openModalBtn">必要EXP一覧 <span class="en-label">/ Show EXP Table</span></button>
+        </div>
+
+        <div class="card full-height">
+            <div class="result-area">
+                <div class="result-label">目標まであと <span class="en-label">/ Remaining EXP</span></div>
+                
+                <div class="formula-display" id="formulaDisplay"></div>
+                
+                <div class="result-container" id="resultContainer">
+                    <div class="result-value" id="resultExp">0 <span class="unit">EXP</span></div>
+                    <div class="error-msg" id="errorMsg"></div>
+                </div>
+            </div>
+
+            <div class="delivery-section">
+                <label>物資提出 / Weekly Delivery <span class="en-label">(7200 EXP)</span></label>
+                <div class="number-control" id="ctrl-weeklyCount">
+                    <button class="spin-btn minus" onclick="stepValue('weeklyCount', -1)">-</button>
+                    <input type="number" id="weeklyCount" value="0" min="0" placeholder="回数を入力">
+                    <button class="spin-btn plus" onclick="stepValue('weeklyCount', 1)">+</button>
+                    <svg class="scroll-hint" viewBox="0 0 24 24">
+                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
+                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    </svg>
+                </div>
+            </div>
+
+            <ul class="action-list" id="actionList">
+                </ul>
+        </div>
+    </div>
+</div>
+
+<div class="footer-signature">discord@edamae</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">必要EXP一覧 / EXP Table</div>
+            <button class="close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>レベル <span>Level</span></th>
+                        <th>必要EXP <span>Required</span></th>
+                        <th>到達まで累計 <span>Cumulative</span></th>
+                    </tr>
+                </thead>
+                <tbody id="expTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 計算ロジック ---
+    const EXP_TABLE = [
+        null,
+        2000, 2000, 2000, 2000, 2000, 
+        2040, 2060, 2080, 2100, 2120, 
+        2160, 2200, 2240, 2280, 2320, 
+        2360, 2400, 2480, 2520, 2600, 
+        2640, 2720, 2800, 2880, 2960, 
+        3040, 3120, 3240, 3320, 3440, 
+        3520, 3640, 3760, 3880, 4000, 
+        4120, 4240, 4360, 4480, 4640, 
+        4760, 4920, 5040, 5200, 5360, 
+        5520, 5680, 5840, 6000, 6160
+    ];
+
+    function getExpForLevel(n) {
+        if (n < 1 || n > 50) return 0;
+        return EXP_TABLE[n];
+    }
+
+    function calculateCumulativeExp(targetLv) {
+        let total = 0;
+        for (let i = 1; i < targetLv; i++) {
+            total += getExpForLevel(i);
+        }
+        return total;
+    }
+
+    // 値の増減処理
+    function stepValue(id, step) {
+        const input = document.getElementById(id);
+        let val = parseInt(input.value) || 0;
+        val += step;
+        
+        if (input.min !== "" && val < parseInt(input.min)) val = parseInt(input.min);
+        if (input.max !== "" && val > parseInt(input.max)) val = parseInt(input.max);
+        
+        input.value = val;
+        calculate(); 
+    }
+
+    // PC用: マウスホイール操作
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('wheel', function(e) {
+            e.preventDefault(); 
+            
+            let val = parseInt(this.value) || 0;
+            const step = this.getAttribute('step') ? parseInt(this.getAttribute('step')) : 1;
+            
+            if (e.deltaY < 0) {
+                val += step; 
+            } else {
+                val -= step; 
+            }
+            
+            if (this.min !== "" && val < parseInt(this.min)) val = parseInt(this.min);
+            if (this.max !== "" && val > parseInt(this.max)) val = parseInt(this.max);
+            
+            this.value = val;
+            calculate();
+        }, { passive: false });
+    });
+
+    function showError(message, errorInputId = null) {
+        const resultContainer = document.getElementById('resultContainer');
+        const formulaEl = document.getElementById('formulaDisplay');
+        const errorEl = document.getElementById('errorMsg');
+        
+        resultContainer.classList.add('has-error');
+        formulaEl.textContent = "";
+        errorEl.innerHTML = message;
+
+        if (errorInputId) {
+            const input = document.getElementById(errorInputId);
+            if(input && input.parentElement.classList.contains('number-control')) {
+                input.parentElement.classList.add('error');
+            }
+        }
+        updateActionList(0);
+    }
+
+    function clearErrors() {
+        const resultContainer = document.getElementById('resultContainer');
+        resultContainer.classList.remove('has-error');
+        
+        document.querySelectorAll('.number-control').forEach(el => el.classList.remove('error'));
+    }
+
+    function calculate() {
+        let currentLv = document.getElementById('currentLv').value;
+        let currentExp = document.getElementById('currentExp').value;
+        let targetLv = document.getElementById('targetLv').value;
+        let weeklyCount = document.getElementById('weeklyCount').value;
+
+        if(currentLv === "" || currentExp === "" || targetLv === "" || weeklyCount === "") {
+             return;
+        }
+
+        const iCurrentLv = parseInt(currentLv) || 0;
+        const iCurrentExp = parseInt(currentExp) || 0;
+        const iTargetLv = parseInt(targetLv) || 0;
+        const iWeeklyCount = parseInt(weeklyCount) || 0;
+
+        clearErrors();
+        
+        if (iCurrentLv < 1 || iCurrentLv > 50) {
+            showError("現在のレベルは 1 ～ 50 の範囲で入力してください<br><span style='font-size:0.8rem'>Current Level must be between 1 and 50</span>", "currentLv");
+            return;
+        }
+
+        if (iTargetLv < 2 || iTargetLv > 50) {
+            showError("目標レベルは 2 ～ 50 の範囲で入力してください<br><span style='font-size:0.8rem'>Target Level must be between 2 and 50</span>", "targetLv");
+            return;
+        }
+        if (iTargetLv <= iCurrentLv) {
+            showError("目標レベルは現在レベルより高く設定してください<br><span style='font-size:0.8rem'>Target level must be higher than current level</span>", "targetLv");
+            return;
+        }
+
+        const maxExp = getExpForLevel(iCurrentLv);
+        if (iCurrentExp < 0 || iCurrentExp > maxExp) {
+            showError(`獲得EXPは 0 ～ ${maxExp} の範囲で入力してください<br><span style='font-size:0.8rem'>EXP Gained must be between 0 and ${maxExp}</span>`, "currentExp");
+            return;
+        }
+
+        if (iWeeklyCount < 0) {
+            showError("物資提出回数は 0 以上の数値を入力してください<br><span style='font-size:0.8rem'>Delivery count must be 0 or more</span>", "weeklyCount");
+            return;
+        }
+
+        const totalReq = calculateCumulativeExp(iTargetLv);
+        const currentBase = calculateCumulativeExp(iCurrentLv);
+        const alreadyHas = currentBase + iCurrentExp;
+        const baseMissing = totalReq - alreadyHas;
+
+        const weeklyExp = iWeeklyCount * 7200;
+        let finalMissing = baseMissing - weeklyExp;
+
+        const formulaEl = document.getElementById('formulaDisplay');
+        const resultEl = document.getElementById('resultExp');
+
+        if (iWeeklyCount > 0) {
+            formulaEl.textContent = `${baseMissing.toLocaleString()} - 7,200 × ${iWeeklyCount} =`;
+        } else {
+            formulaEl.textContent = "";
+        }
+
+        if (finalMissing < 0) finalMissing = 0;
+
+        const displayValue = finalMissing.toLocaleString();
+        resultEl.innerHTML = `${displayValue} <span class="unit">EXP</span>`;
+        
+        updateActionList(finalMissing);
+        generateTable(50); 
+    }
+
+    function updateActionList(missingExp) {
+        const listEl = document.getElementById('actionList');
+        listEl.innerHTML = '';
+
+        if (missingExp <= 0) {
+            listEl.innerHTML = '<li class="action-item" style="justify-content:center; color:var(--success-color);">達成済み / Completed</li>';
+            return;
+        }
+
+        const actions = [
+            { name: "フォーカス25消費", exp: 100, sub: "Focus 25", cost: 25 },
+            { name: "フォーカス20消費", exp: 80, sub: "Focus 20", cost: 20 },
+            { name: "フォーカス10消費", exp: 40, sub: "Focus 10", cost: 10 },
+            { name: "フォーカス消費なし", exp: 2, sub: "No Focus", cost: 0 }
+        ];
+
+        actions.forEach(act => {
+            const count = Math.ceil(missingExp / act.exp);
+            
+            let focusHtml = '';
+            if (act.cost > 0) {
+                const totalFocus = count * act.cost;
+                focusHtml = `<div class="action-focus">Focus: ${totalFocus.toLocaleString()}</div>`;
+            }
+
+            const li = document.createElement('li');
+            li.className = 'action-item';
+            li.innerHTML = `
+                <div class="action-name">
+                    ${act.name} <span style="font-size:0.8rem; opacity:0.7;">(${act.exp}EXP)</span><br>
+                    <span style="font-size:0.75rem; opacity:0.6;">${act.sub}</span>
+                </div>
+                <div class="action-right">
+                    <div class="action-count">
+                        ${count.toLocaleString()}<span>回 / times</span>
+                    </div>
+                    ${focusHtml}
+                </div>
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    function generateTable(maxLv) {
+        const tbody = document.getElementById('expTableBody');
+        tbody.innerHTML = ''; 
+
+        let cumulative = 0;
+        for (let n = 1; n <= maxLv; n++) {
+            const expNext = getExpForLevel(n);
+            const tr = document.createElement('tr');
+            
+            const tdLv = document.createElement('td');
+            tdLv.textContent = n;
+            tr.appendChild(tdLv);
+            
+            const tdExp = document.createElement('td');
+            tdExp.textContent = expNext.toLocaleString();
+            tr.appendChild(tdExp);
+            
+            const tdCum = document.createElement('td');
+            tdCum.textContent = cumulative.toLocaleString();
+            tr.appendChild(tdCum);
+
+            tbody.appendChild(tr);
+
+            cumulative += expNext;
+        }
+    }
+
+    const modal = document.getElementById('modalOverlay');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+
+    openBtn.addEventListener('click', () => { modal.classList.add('is-open'); });
+    closeBtn.addEventListener('click', () => { modal.classList.remove('is-open'); });
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('is-open'); });
+
+    document.getElementById('currentLv').addEventListener('input', calculate);
+    document.getElementById('currentExp').addEventListener('input', calculate);
+    document.getElementById('targetLv').addEventListener('input', calculate);
+    document.getElementById('weeklyCount').addEventListener('input', calculate);
+
+    calculate();
+
+</script>
+</body>
+</html>
