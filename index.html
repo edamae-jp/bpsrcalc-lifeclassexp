@@ -164,17 +164,16 @@
             pointer-events: none;
             opacity: 0;
             
-            /* SVGの設定 */
-            width: 24px;
+            /* SVGの設定 (幅を広げて矢印スペースを確保) */
+            width: 36px;
             height: 24px;
             fill: none;
-            stroke: var(--main-accent); /* テーマカラーを使用 */
+            stroke: var(--main-accent);
             stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
 
-        /* 中のホイール部分のアニメーション */
         .scroll-hint .wheel {
             animation: scrollWheel 1.5s infinite;
         }
@@ -195,7 +194,7 @@
 
             .number-control:hover .scroll-hint {
                 display: block;
-                animation: iconFade 2.0s forwards; /* 少し長めに表示 */
+                animation: iconFade 2.0s forwards;
             }
         }
 
@@ -587,9 +586,10 @@
                     <button class="spin-btn minus" onclick="stepValue('currentLv', -1)">-</button>
                     <input type="number" id="currentLv" value="1" min="1" max="50">
                     <button class="spin-btn plus" onclick="stepValue('currentLv', 1)">+</button>
-                    <svg class="scroll-hint" viewBox="0 0 24 24">
-                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
-                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    <svg class="scroll-hint" viewBox="0 0 36 24">
+                        <path d="M8 5 L4 9 M8 5 L12 9 M8 5 L8 19 M8 19 L4 15 M8 19 L12 15" />
+                        <rect x="18" y="4" width="12" height="16" rx="5" />
+                        <line class="wheel" x1="24" y1="8" x2="24" y2="10" />
                     </svg>
                 </div>
             </div>
@@ -600,9 +600,10 @@
                     <button class="spin-btn minus" onclick="stepValue('currentExp', -10)">-</button>
                     <input type="number" id="currentExp" value="0" min="0" step="10">
                     <button class="spin-btn plus" onclick="stepValue('currentExp', 10)">+</button>
-                    <svg class="scroll-hint" viewBox="0 0 24 24">
-                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
-                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    <svg class="scroll-hint" viewBox="0 0 36 24">
+                        <path d="M8 5 L4 9 M8 5 L12 9 M8 5 L8 19 M8 19 L4 15 M8 19 L12 15" />
+                        <rect x="18" y="4" width="12" height="16" rx="5" />
+                        <line class="wheel" x1="24" y1="8" x2="24" y2="10" />
                     </svg>
                 </div>
             </div>
@@ -613,9 +614,10 @@
                     <button class="spin-btn minus" onclick="stepValue('targetLv', -1)">-</button>
                     <input type="number" id="targetLv" value="50" min="2" max="50">
                     <button class="spin-btn plus" onclick="stepValue('targetLv', 1)">+</button>
-                    <svg class="scroll-hint" viewBox="0 0 24 24">
-                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
-                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    <svg class="scroll-hint" viewBox="0 0 36 24">
+                        <path d="M8 5 L4 9 M8 5 L12 9 M8 5 L8 19 M8 19 L4 15 M8 19 L12 15" />
+                        <rect x="18" y="4" width="12" height="16" rx="5" />
+                        <line class="wheel" x1="24" y1="8" x2="24" y2="10" />
                     </svg>
                 </div>
             </div>
@@ -641,9 +643,10 @@
                     <button class="spin-btn minus" onclick="stepValue('weeklyCount', -1)">-</button>
                     <input type="number" id="weeklyCount" value="0" min="0" placeholder="回数を入力">
                     <button class="spin-btn plus" onclick="stepValue('weeklyCount', 1)">+</button>
-                    <svg class="scroll-hint" viewBox="0 0 24 24">
-                        <rect x="7" y="4" width="10" height="16" rx="5" ry="5"></rect>
-                        <line class="wheel" x1="12" y1="8" x2="12" y2="10"></line>
+                    <svg class="scroll-hint" viewBox="0 0 36 24">
+                        <path d="M8 5 L4 9 M8 5 L12 9 M8 5 L8 19 M8 19 L4 15 M8 19 L12 15" />
+                        <rect x="18" y="4" width="12" height="16" rx="5" />
+                        <line class="wheel" x1="24" y1="8" x2="24" y2="10" />
                     </svg>
                 </div>
             </div>
