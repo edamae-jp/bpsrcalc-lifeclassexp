@@ -283,8 +283,7 @@
                 margin: 0;
             }
             
-            /* --- 署名アイコンのPC専用位置調整 --- */
-            /* PCではフォントの描画位置が異なるため、アイコンを2px下げる */
+            /* 署名アイコン位置調整(PC用) */
             .discord-icon {
                 transform: translateY(2px);
             }
@@ -471,7 +470,6 @@
             gap: 5px;
         }
 
-        /* Discord SVGアイコンの設定 (デフォルト/スマホは調整なし) */
         .discord-icon {
             width: 16px;
             height: 16px;
@@ -731,6 +729,34 @@
         return total;
     }
 
+    // --- LocalStorage Logic ---
+    function saveData() {
+        const currentLv = document.getElementById('currentLv').value;
+        const currentExp = document.getElementById('currentExp').value;
+        const targetLv = document.getElementById('targetLv').value;
+        const weeklyCount = document.getElementById('weeklyCount').value;
+
+        localStorage.setItem('bpsr_currentLv', currentLv);
+        localStorage.setItem('bpsr_currentExp', currentExp);
+        localStorage.setItem('bpsr_targetLv', targetLv);
+        localStorage.setItem('bpsr_weeklyCount', weeklyCount);
+    }
+
+    function loadData() {
+        if(localStorage.getItem('bpsr_currentLv')) {
+            document.getElementById('currentLv').value = localStorage.getItem('bpsr_currentLv');
+        }
+        if(localStorage.getItem('bpsr_currentExp')) {
+            document.getElementById('currentExp').value = localStorage.getItem('bpsr_currentExp');
+        }
+        if(localStorage.getItem('bpsr_targetLv')) {
+            document.getElementById('targetLv').value = localStorage.getItem('bpsr_targetLv');
+        }
+        if(localStorage.getItem('bpsr_weeklyCount')) {
+            document.getElementById('weeklyCount').value = localStorage.getItem('bpsr_weeklyCount');
+        }
+    }
+
     // 値の増減処理
     function stepValue(id, step) {
         const input = document.getElementById(id);
@@ -796,6 +822,9 @@
         let currentExp = document.getElementById('currentExp').value;
         let targetLv = document.getElementById('targetLv').value;
         let weeklyCount = document.getElementById('weeklyCount').value;
+
+        // Save on every calculation
+        saveData();
 
         if(currentLv === "" || currentExp === "" || targetLv === "" || weeklyCount === "") {
              return;
@@ -942,6 +971,8 @@
     document.getElementById('targetLv').addEventListener('input', calculate);
     document.getElementById('weeklyCount').addEventListener('input', calculate);
 
+    // Initial Load
+    loadData();
     calculate();
 
 </script>
